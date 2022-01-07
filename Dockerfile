@@ -1,13 +1,17 @@
-FROM ubuntu:latest
+FROM ubuntu:latest AS builder
 
 # Deal with Ubuntu's tzdata package stupidity
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install packages and pare dependencies safely
-RUN apt-get update && \
-  apt-get install -y octave fig2dev && \
-  apt-get purge -y gnome-shell libgtk-3-common && \
-  apt-get autoremove -y && \
-  apt-get clean
+RUN apt-get update
 
-# Replace figure() with version that automatically hides figure
+RUN apt-get install -y octave fig2dev
+
+RUN apt-get purge -y gnome-shell && apt-get autoremove -y && apt-get clean
+
+
+FROM builder
+
+# Copy in offline octave graphics helper functions
+COPY src/* /usr/share/octave/site/m/
