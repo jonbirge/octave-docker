@@ -1,2 +1,2 @@
 # octave-docker
-Docker image with octave intended for backend scripting.
+Octave docker container intended for backend scripting.
