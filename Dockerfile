@@ -21,7 +21,7 @@ RUN wget https://ftpmirror.gnu.org/octave/${TARBALL} && tar zxf ${TARBALL}
 FROM stage AS build
 
 WORKDIR ${SRC}
-RUN ./configure --without-qt --disable-java
+RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
 RUN make -j 8
 RUN make install
 
@@ -33,8 +33,8 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get -y install libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
-  libcurl4-gnutls-dev libfftw3-dev libreadline-dev gnuplot-nox libhdf5-dev llvm-dev libqhull-dev \
-  zlib1g-dev gperf libsundials-dev libqrupdate-dev
+  libcurl4-gnutls-dev libfftw3-dev libreadline-dev gnuplot-nox libhdf5-dev libqhull-dev \
+  zlib1g-dev libsundials-dev libqrupdate-dev
 
 # Copy in from build
 COPY --from=build /usr/local /usr/local
