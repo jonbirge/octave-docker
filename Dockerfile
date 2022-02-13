@@ -37,7 +37,7 @@ RUN apt-get -y install libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
   zlib1g-dev gperf libsundials-dev libqrupdate-dev
 
 # Copy in from build
-COPY --from=build /usr/local /usr
+COPY --from=build /usr/local /usr/local
 
 # Copy in offline octave graphics helper functions
 COPY src/* /usr/local/share/octave/site/m/
