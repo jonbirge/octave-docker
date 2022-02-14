@@ -22,7 +22,7 @@ FROM stage AS build
 
 WORKDIR ${SRC}
 RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
-RUN make -j 8
+RUN make -j 4
 RUN make install
 
 
