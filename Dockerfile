@@ -21,6 +21,7 @@ RUN wget https://ftpmirror.gnu.org/octave/${TARBALL} && tar zxf ${TARBALL}
 FROM stage AS build
 
 WORKDIR ${SRC}
+ENV CFLAGS=-O2
 RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
 RUN make -j 4
 RUN make install
