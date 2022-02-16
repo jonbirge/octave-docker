@@ -40,5 +40,7 @@ RUN apt-get -y install libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
 # Copy in from build
 COPY --from=build /usr/local /usr/local
 
-# Copy in offline octave graphics helper functions
+# Copy in octave helper functions
 COPY src/* /usr/local/share/octave/site/m/
+RUN mkdir /test
+COPY test/* /test
