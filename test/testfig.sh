@@ -1,11 +1,13 @@
 #!/bin/bash
 
 rm -f testfig.png
-docker run -d \
+docker run \
+  -w /test \
   --name octave-test \
   --mount type=bind,source="$(pwd)",target=/test \
-  jonbirge/octave:latest
-  "cd /test && octave-cli testfig.m"
+  jonbirge/octave:latest \
+  octave-cli testfig.m
+docker rm octave-test
 
 [ -f testfig.png ] && exit 0
 exit 1
