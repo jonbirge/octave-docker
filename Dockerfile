@@ -1,5 +1,5 @@
 #### Stage dependencies
-FROM ubuntu:latest AS stage
+FROM ubuntu:20.04 AS stage
 
 # Deal with Ubuntu's tzdata package stupidity
 ENV DEBIAN_FRONTEND=noninteractive
@@ -28,7 +28,7 @@ RUN make install
 
 
 #### Production image
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 # Runtime dependencies
 ENV DEBIAN_FRONTEND=noninteractive
