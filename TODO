@@ -1,2 +1,1 @@
-Should we use a dated version of Ubuntu for the stage/build containers to be more efficient?
 Switch to using Qt and remove gnuplot support

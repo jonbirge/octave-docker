@@ -1,26 +1,13 @@
-#### Stage dependencies
-FROM ubuntu:22.04 AS stage
-ARG SRC_VER=octave-6.4.0
-
-# Deal with Ubuntu's tzdata package stupidity
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install build dependencies
-RUN apt-get update
-RUN apt-get -y install wget gcc g++ gfortran make libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
-  libcurl4-gnutls-dev libreadline-dev gnuplot-nox libhdf5-dev llvm-dev libqhull-dev \
-  zlib1g-dev autoconf automake bison flex gperf gzip libtool perl rsync tar libsundials-dev \
-  texinfo libqrupdate-dev
+#### Build image
+FROM jonbirge/octave-base AS build
+ARG SRC_VER=octave-8.2.0
 
 # Download octave release
 ENV SRC=${SRC_VER}
 ENV TARBALL=${SRC}.tar.gz
 RUN wget https://ftpmirror.gnu.org/octave/${TARBALL} && tar zxf ${TARBALL}
 
-
-#### Compile from source
-FROM stage AS build
-
+# Compile and install
 WORKDIR ${SRC}
 ENV CFLAGS="-O2 -pipe"
 RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
