@@ -1,5 +1,6 @@
 #### Stage dependencies
-FROM ubuntu:20.04 AS stage
+FROM ubuntu:22.04 AS stage
+ARG SRC_VER=octave-6.4.0
 
 # Deal with Ubuntu's tzdata package stupidity
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,7 +13,7 @@ RUN apt-get -y install wget gcc g++ gfortran make libblas-dev liblapack-dev libp
   texinfo libqrupdate-dev
 
 # Download octave release
-ENV SRC=octave-6.4.0
+ENV SRC=${SRC_VER}
 ENV TARBALL=${SRC}.tar.gz
 RUN wget https://ftpmirror.gnu.org/octave/${TARBALL} && tar zxf ${TARBALL}
 
@@ -23,12 +24,12 @@ FROM stage AS build
 WORKDIR ${SRC}
 ENV CFLAGS="-O2 -pipe"
 RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
-RUN make -j 4
+RUN make -j 12
 RUN make install
 
 
 #### Production image
-FROM ubuntu:20.04
+FROM ubuntu:latest
 
 # Runtime dependencies
 ENV DEBIAN_FRONTEND=noninteractive
