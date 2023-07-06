@@ -16,7 +16,7 @@ RUN make install
 
 
 #### Production image
-FROM ubuntu:latest
+FROM ubuntu:kinetic
 
 # Runtime dependencies
 ENV DEBIAN_FRONTEND=noninteractive
