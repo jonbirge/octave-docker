@@ -1,1 +1,4 @@
 Switch to using Qt and remove gnuplot support
+Take list of octave versions to build on top of base dependency image
+Use MIT mirrors for everything
+

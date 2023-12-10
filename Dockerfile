@@ -1,6 +1,6 @@
 #### Build image
 FROM jonbirge/octave-base AS build
-ARG SRC_VER=octave-8.2.0
+ARG SRC_VER=octave-8.4.0
 
 # Download octave release
 ENV SRC=${SRC_VER}
