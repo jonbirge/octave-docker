@@ -16,7 +16,7 @@ RUN make install
 
 
 #### Production image
-FROM ubuntu:latest
+FROM ubuntu:24.10
 
 # Runtime dependencies
 ENV DEBIAN_FRONTEND=noninteractive
