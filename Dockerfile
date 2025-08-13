@@ -1,44 +1,63 @@
-#### Build image
-FROM ubuntu:latest AS build
+# syntax=docker/dockerfile:1.7
+
+########################
+# Build stage
+########################
+FROM debian:bookworm-slim AS build
 ARG SRC_VER=octave-10.2.0
-
-# Deal with Ubuntu's tzdata package stupidity
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
-RUN apt-get update
-RUN apt-get -y install wget gcc g++ gfortran make libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
-  libcurl4-gnutls-dev libreadline-dev gnuplot-nox libhdf5-dev llvm-dev libqhull-dev \
-  zlib1g-dev autoconf automake bison flex gperf gzip libtool perl rsync tar libsundials-dev \
-  texinfo libqrupdate-dev
+# Toolchain & build deps (single RUN, no recommends, cache mounts)
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates wget \
+      build-essential gcc g++ gfortran make pkg-config \
+      libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
+      libcurl4-gnutls-dev libreadline-dev gnuplot-nox libhdf5-dev \
+      llvm-dev libqhull-dev zlib1g-dev autoconf automake bison flex \
+      gperf gzip libtool perl rsync tar libsundials-dev texinfo \
+      libqrupdate-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Download octave release
-ENV SRC=${SRC_VER}
-ENV TARBALL=${SRC}.tar.gz
-RUN wget http://ftp.gnu.org/gnu/octave/${TARBALL} && tar zxf ${TARBALL}
+WORKDIR /tmp
 
-# Compile and install
-WORKDIR ${SRC}
-ENV CFLAGS="-O2 -pipe"
-RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype
-RUN make -j 8
-RUN make install
+# Fetch source (quiet) and extract
+ARG SRC_SHA256=""
+ENV SRC=${SRC_VER} TARBALL=${SRC_VER}.tar.gz
+RUN wget -q https://ftp.gnu.org/gnu/octave/${TARBALL} \
+ && if [ -n "${SRC_SHA256}" ]; then echo "${SRC_SHA256}  ${TARBALL}" | sha256sum -c -; fi \
+ && tar -xzf ${TARBALL}
 
+# Configure, build, and stage-install into /opt/stage
+WORKDIR /tmp/${SRC_VER}
+ENV CFLAGS="-O2 -pipe" CXXFLAGS="-O2 -pipe" FFLAGS="-O2 -pipe" MAKEFLAGS="-j$(nproc)"
+RUN ./configure --without-qt --disable-java --disable-docs --without-opengl --without-freetype \
+ && make \
+ && make install DESTDIR=/opt/stage
 
-#### Deployment image
-FROM ubuntu:latest
-
-# Runtime dependencies
+########################
+# Runtime stage
+########################
+FROM debian:bookworm-slim AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update
-RUN apt-get -y install libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
-  libcurl4-gnutls-dev libreadline-dev gnuplot-nox libhdf5-dev libqhull-dev \
-  zlib1g-dev libsundials-dev libqrupdate-dev
 
-# Copy in from build
-COPY --from=build /usr/local /usr/local
+# Runtime libraries only (single RUN, no recommends, cache mounts)
+# If you later confirm exact non-*-dev runtime libs, swap them in here.
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
+      libblas-dev liblapack-dev libpcre3-dev libarpack2-dev \
+      libcurl4-gnutls-dev libreadline-dev gnuplot-nox libhdf5-dev \
+      libqhull-dev zlib1g-dev libsundials-dev libqrupdate-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy in octave helper functions
-COPY src/* /usr/local/share/octave/site/m/
-RUN mkdir /test
-COPY test/* /test
+# Copy only what "make install" produced
+COPY --from=build /opt/stage/usr/local/ /usr/local/
+
+# Octave helper functions
+COPY src/ /usr/local/share/octave/site/m/
+
+# Optional: test files
+RUN mkdir -p /test
+COPY test/ /test/
